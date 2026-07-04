@@ -103,7 +103,7 @@
       <div class="logo-glow"></div>
       <svg class="cute-cloud-logo logo-icon-large" aria-hidden="true"><use href="#logo-cute-cloud"/></svg>
       <h2>Welcome to Assy</h2>
-      <p>Connect your Gmail account to experience intelligent summarization, categorization, auto-draft replies, and semantic search powered by Gemini.</p>
+      <p>Connect your Gmail account to experience intelligent summarization, categorization, auto-draft replies, and semantic search powered by Assy.</p>
       
       <button id="btn-login" class="btn btn-primary btn-large">
         <i data-lucide="mail"></i>
@@ -159,7 +159,7 @@
       <div class="search-section">
         <div class="search-toggle">
           <button id="search-mode-gmail" class="btn-toggle active">Gmail Search</button>
-          <button id="search-mode-ai" class="btn-toggle">Gemini AI Search</button>
+          <button id="search-mode-ai" class="btn-toggle">Assy AI Search</button>
         </div>
         <div class="search-input-group">
           <input type="text" id="search-input" placeholder="Search emails...">
@@ -181,6 +181,14 @@
           <li><button class="nav-item" data-category="Promotions"><i data-lucide="tag"></i><span>Promotions</span><span class="badge badge-promotions" id="count-promotions">-</span></button></li>
           <li><button class="nav-item" data-category="Social"><i data-lucide="users"></i><span>Social</span><span class="badge badge-social" id="count-social">-</span></button></li>
           <li><button class="nav-item" data-category="Forums"><i data-lucide="message-square"></i><span>Forums</span><span class="badge badge-forums" id="count-forums">-</span></button></li>
+        </ul>
+
+        <div class="nav-section-title nav-section-title-row">
+          <span>My Categories</span>
+          <button id="btn-add-category" class="btn-add-category" title="Add category"><i data-lucide="plus"></i></button>
+        </div>
+        <ul class="nav-list" id="custom-category-list">
+          <!-- Custom categories populated dynamically -->
         </ul>
       </nav>
 
@@ -263,10 +271,10 @@
         <div class="ai-dashboard-card glass-card">
           <div class="ai-card-header">
             <div class="ai-badge">
-              <i data-lucide="sparkles"></i>
-              <span>Gemini AI Insights</span>
+              <svg class="cute-cloud-logo ai-badge-cloud" aria-hidden="true"><use href="#logo-cute-cloud"/></svg>
+              <span>Assy AI Insights</span>
             </div>
-            <button id="btn-reanalyze" class="btn btn-tiny" title="Re-analyze with Gemini">
+            <button id="btn-reanalyze" class="btn btn-tiny" title="Re-analyze with Assy">
               <i data-lucide="rotate-cw"></i>
               <span>Re-analyze</span>
             </button>
@@ -311,7 +319,7 @@
         <!-- AI Smart Reply & Drafting Section -->
         <div class="ai-draft-section glass-card">
           <div class="draft-header">
-            <h4><i data-lucide="pen-tool"></i> Gemini Smart Reply</h4>
+            <h4><i data-lucide="pen-tool"></i> Assy Smart Reply</h4>
             <span class="draft-status" id="draft-status-indicator"></span>
           </div>
 
@@ -362,6 +370,38 @@
     <svg class="cute-cloud-logo fab-cloud-icon" aria-hidden="true"><use href="#logo-cute-cloud"/></svg>
     <span>Ask Assy</span>
   </button>
+
+  <!-- Add Custom Category Modal -->
+  <div id="category-modal" class="modal-overlay hidden">
+    <div class="modal-card glass-card modal-card-sm">
+      <div class="modal-header">
+        <div class="brand">
+          <i data-lucide="folder-plus"></i>
+          <span>New Category</span>
+        </div>
+        <button id="btn-close-category" class="btn-icon" title="Close"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-hint">Assy will automatically sort incoming mail into this category using AI. A clear description improves accuracy.</p>
+        <div class="form-group">
+          <label for="category-name">Name</label>
+          <input type="text" id="category-name" placeholder="e.g. Job Applications" maxlength="40">
+        </div>
+        <div class="form-group">
+          <label for="category-desc">Description (what belongs here)</label>
+          <textarea id="category-desc" rows="3" placeholder="e.g. Emails about job openings, interviews, recruiters, and application status"></textarea>
+        </div>
+        <p id="category-error" class="category-error hidden"></p>
+        <div class="compose-actions">
+          <button id="btn-cancel-category" class="btn btn-secondary">Cancel</button>
+          <button id="btn-save-category" class="btn btn-success">
+            <i data-lucide="check"></i>
+            <span>Create &amp; Sort</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Assy Assistant Overlay Modal -->
   <div id="assy-modal" class="modal-overlay hidden">
