@@ -9,7 +9,9 @@ const state = {
   activeCategory: 'ALL',
   emails: [],
   selectedEmail: null,
-  selectedTone: 'Professional'
+  selectedTone: 'Professional',
+  nextPageToken: null,
+  loadingMore: false
 };
 
 // UI Elements
@@ -149,6 +151,9 @@ function setupEventListeners() {
   // Email List controls
   el.btnRefresh.addEventListener('click', () => loadEmails(true));
   el.btnResetList.addEventListener('click', resetSearch);
+
+  // Infinite scroll: load older emails as the user scrolls down
+  el.emailListContainer.addEventListener('scroll', handleListScroll);
   
   // Search Bar
   el.btnSearch.addEventListener('click', handleSearch);
@@ -358,6 +363,7 @@ async function loadEmails(isSilent = false) {
     
     if (data.emails) {
       state.emails = data.emails;
+      state.nextPageToken = data.nextPageToken || null;
       renderEmailList();
       updateCategoryCounts();
     } else if (data.error) {
@@ -367,6 +373,51 @@ async function loadEmails(isSilent = false) {
   } catch (err) {
     console.error(err);
     el.emailListContainer.innerHTML = `<div class="list-placeholder"><p class="text-rose">Network error occurred.</p></div>`;
+  }
+}
+
+// Trigger loading older emails when scrolled near the bottom of the list
+function handleListScroll() {
+  const c = el.emailListContainer;
+  if (c.scrollTop + c.clientHeight >= c.scrollHeight - 120) {
+    loadMoreEmails();
+  }
+}
+
+// Fetch the next page of (older) emails and append them to the list
+async function loadMoreEmails() {
+  if (state.loadingMore || !state.nextPageToken) return;
+  state.loadingMore = true;
+
+  // Show a loading indicator at the bottom of the list
+  const loader = document.createElement('div');
+  loader.className = 'list-load-more';
+  loader.innerHTML = '<div class="spinner"></div><span>Loading older emails...</span>';
+  el.emailListContainer.appendChild(loader);
+
+  try {
+    let url = `/api/emails?pageToken=${encodeURIComponent(state.nextPageToken)}`;
+    if (state.activeQuery) {
+      url += `&q=${encodeURIComponent(state.activeQuery)}`;
+    }
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (data.emails) {
+      state.emails = state.emails.concat(data.emails);
+      state.nextPageToken = data.nextPageToken || null;
+      renderEmailList();
+      updateCategoryCounts();
+    } else if (data.error) {
+      console.error(data.error);
+      loader.remove();
+    }
+  } catch (err) {
+    console.error(err);
+    loader.remove();
+  } finally {
+    state.loadingMore = false;
   }
 }
 

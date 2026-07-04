@@ -304,12 +304,14 @@ app.get('/api/emails', async (req, res) => {
   try {
     const gmail = await getGmailClient();
     const query = req.query.q || '';
+    const pageToken = req.query.pageToken || undefined;
     
     // Fetch list of message headers
     const listRes = await gmail.users.messages.list({
       userId: 'me',
       maxResults: 15,
-      q: query
+      q: query,
+      pageToken
     });
 
     const messages = listRes.data.messages || [];
@@ -339,7 +341,7 @@ app.get('/api/emails', async (req, res) => {
     });
 
     const emails = await Promise.all(emailPromises);
-    res.json({ emails });
+    res.json({ emails, nextPageToken: listRes.data.nextPageToken || null });
   } catch (err) {
     console.error('Error listing emails:', err);
     res.status(500).json({ error: err.message });
