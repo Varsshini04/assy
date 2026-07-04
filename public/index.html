@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assy - Gmail Intelligent Assistant</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Cute cloud logo (reused via <use>) -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+    <symbol id="logo-cute-cloud" viewBox="0 0 64 48">
+      <ellipse cx="32" cy="30" rx="26" ry="16" fill="#c7d2fe"/>
+      <circle cx="16" cy="32" r="11" fill="#c7d2fe"/>
+      <circle cx="32" cy="26" r="13" fill="#c7d2fe"/>
+      <circle cx="48" cy="32" r="11" fill="#c7d2fe"/>
+      <circle cx="32" cy="28" r="18" fill="#a5b4fc" opacity="0.35"/>
+      <circle cx="22" cy="33" r="3.5" fill="#fda4af" opacity="0.55"/>
+      <circle cx="42" cy="33" r="3.5" fill="#fda4af" opacity="0.55"/>
+      <circle cx="25" cy="29" r="2.8" fill="#1e293b"/>
+      <circle cx="39" cy="29" r="2.8" fill="#1e293b"/>
+      <circle cx="26" cy="28" r="0.9" fill="#fff"/>
+      <circle cx="40" cy="28" r="0.9" fill="#fff"/>
+      <path d="M 27 35 Q 32 39 37 35" stroke="#1e293b" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+    </symbol>
+  </svg>
+
+  <!-- Screen 1: Setup Credentials (Shown if not configured) -->
+  <div id="setup-screen" class="screen hidden">
+    <div class="setup-container">
+      <div class="brand-header">
+        <div class="logo-glow"></div>
+        <svg class="cute-cloud-logo logo-icon animate-pulse" aria-hidden="true"><use href="#logo-cute-cloud"/></svg>
+        <h1>Assy</h1>
+      </div>
+      <p class="subtitle">Set up your credentials to initialize the AI Assistant.</p>
+      
+      <form id="setup-form" class="glass-card">
+        <h3>System Configuration</h3>
+        
+        <div class="form-group">
+          <label for="setup-gemini-key">Gemini API Key</label>
+          <div class="input-wrapper">
+            <i data-lucide="key" class="input-icon"></i>
+            <input type="password" id="setup-gemini-key" required placeholder="AIzaSy...">
+          </div>
+          <small>Get a key from Google AI Studio</small>
+        </div>
+
+        <div class="form-group">
+          <label for="setup-client-id">Google Client ID</label>
+          <div class="input-wrapper">
+            <i data-lucide="shield-check" class="input-icon"></i>
+            <input type="text" id="setup-client-id" required placeholder="123456-abcdef.apps.googleusercontent.com">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="setup-client-secret">Google Client Secret</label>
+          <div class="input-wrapper">
+            <i data-lucide="lock" class="input-icon"></i>
+            <input type="password" id="setup-client-secret" required placeholder="GOCSPX-...">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="setup-redirect-uri">OAuth Redirect URI</label>
+          <div class="input-wrapper">
+            <i data-lucide="link" class="input-icon"></i>
+            <input type="text" id="setup-redirect-uri" value="http://localhost:3000/api/auth/callback" placeholder="http://localhost:3000/api/auth/callback">
+          </div>
+          <small>Must match the authorized redirect URIs in Google Cloud Console</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">
+          <span>Save Configuration</span>
+          <i data-lucide="chevron-right"></i>
+        </button>
+      </form>
+
+      <div class="setup-guide glass-card">
+        <h4><i data-lucide="help-circle"></i> Quick Setup Guide:</h4>
+        <ol>
+          <li>Enable the <strong>Gmail API</strong> in the Google Cloud Console.</li>
+          <li>Configure your OAuth consent screen (internal/external) and add scopes: <code>gmail.readonly</code>, <code>gmail.compose</code>, <code>gmail.send</code>, <code>gmail.modify</code>.</li>
+          <li>Create <strong>OAuth 2.0 Client ID</strong> credentials for a Web Application.</li>
+          <li>Set authorized redirect URI to <code>http://localhost:3000/api/auth/callback</code>.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 2: OAuth Login (Shown if configured but not authenticated) -->
+  <div id="login-screen" class="screen hidden">
+    <div class="login-card glass-card">
+      <div class="logo-glow"></div>
+      <svg class="cute-cloud-logo logo-icon-large" aria-hidden="true"><use href="#logo-cute-cloud"/></svg>
+      <h2>Welcome to Assy</h2>
+      <p>Connect your Gmail account to experience intelligent summarization, categorization, auto-draft replies, and semantic search powered by Gemini.</p>
+      
+      <button id="btn-login" class="btn btn-primary btn-large">
+        <i data-lucide="mail"></i>
+        <span>Connect Gmail Account</span>
+      </button>
+
+      <div class="features-grid">
+        <div class="feature-item">
+          <i data-lucide="file-text" class="feat-icon text-indigo"></i>
+          <div>
+            <h5>AI Summaries</h5>
+            <p>Instantly grasp the core message of any email.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <i data-lucide="tag" class="feat-icon text-emerald"></i>
+          <div>
+            <h5>Smart Categorization</h5>
+            <p>Emails automatically sorted with AI-powered reasoning.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <i data-lucide="pen-tool" class="feat-icon text-amber"></i>
+          <div>
+            <h5>Contextual Drafts</h5>
+            <p>Reply in seconds using customizable, tone-aware templates.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <i data-lucide="search" class="feat-icon text-rose"></i>
+          <div>
+            <h5>Natural Language Search</h5>
+            <p>Search using human phrasing (e.g. "lunch last week").</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3: Main Dashboard -->
+  <div id="dashboard-screen" class="screen hidden">
+    
+    <!-- Left Navigation Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <svg class="cute-cloud-logo brand-icon" aria-hidden="true"><use href="#logo-cute-cloud"/></svg>
+          <span>Assy</span>
+        </div>
+      </div>
+
+      <!-- Search Section -->
+      <div class="search-section">
+        <div class="search-toggle">
+          <button id="search-mode-gmail" class="btn-toggle active">Gmail Search</button>
+          <button id="search-mode-ai" class="btn-toggle">Gemini AI Search</button>
+        </div>
+        <div class="search-input-group">
+          <input type="text" id="search-input" placeholder="Search emails...">
+          <button id="btn-search" title="Search"><i data-lucide="search"></i></button>
+        </div>
+        <div id="active-query-tag" class="hidden">
+          <span>Active filter</span>
+          <button id="btn-clear-search"><i data-lucide="x"></i></button>
+        </div>
+      </div>
+
+      <!-- Categories Filter List -->
+      <nav class="nav-menu">
+        <div class="nav-section-title">AI Categories</div>
+        <ul class="nav-list">
+          <li><button class="nav-item active" data-category="ALL"><i data-lucide="inbox"></i><span>All Inboxes</span><span class="badge" id="count-all">-</span></button></li>
+          <li><button class="nav-item" data-category="Primary"><i data-lucide="user"></i><span>Primary</span><span class="badge badge-primary" id="count-primary">-</span></button></li>
+          <li><button class="nav-item" data-category="Updates"><i data-lucide="info"></i><span>Updates</span><span class="badge badge-updates" id="count-updates">-</span></button></li>
+          <li><button class="nav-item" data-category="Promotions"><i data-lucide="tag"></i><span>Promotions</span><span class="badge badge-promotions" id="count-promotions">-</span></button></li>
+          <li><button class="nav-item" data-category="Social"><i data-lucide="users"></i><span>Social</span><span class="badge badge-social" id="count-social">-</span></button></li>
+          <li><button class="nav-item" data-category="Forums"><i data-lucide="message-square"></i><span>Forums</span><span class="badge badge-forums" id="count-forums">-</span></button></li>
+        </ul>
+      </nav>
+
+      <!-- User Profile / Logout -->
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <i data-lucide="user-check" class="user-avatar-icon"></i>
+          <span class="user-email">Gmail Connected</span>
+        </div>
+        <button id="btn-logout" class="btn-icon" title="Log Out"><i data-lucide="log-out"></i></button>
+      </div>
+    </aside>
+
+    <!-- Middle Column: Email List Pane -->
+    <main class="list-pane">
+      <div class="list-header">
+        <div class="list-title-row">
+          <h2>Inbox</h2>
+          <button id="btn-refresh" class="btn btn-secondary btn-icon-only" title="Refresh Emails">
+            <i data-lucide="refresh-cw"></i>
+          </button>
+        </div>
+        <div class="list-filters-active hidden" id="list-status-bar">
+          <span id="list-status-text">Showing search results</span>
+          <button id="btn-reset-list" class="btn-link">Clear</button>
+        </div>
+      </div>
+
+      <div class="email-list" id="email-list-container">
+        <!-- Emails populated dynamically -->
+        <div class="list-placeholder">
+          <div class="spinner"></div>
+          <p>Loading emails from Gmail...</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Column: Email Details & AI Actions -->
+    <section class="detail-pane" id="detail-pane-container">
+      
+      <!-- Placeholder shown when no email is selected -->
+      <div id="detail-placeholder" class="detail-placeholder">
+        <div class="glowing-circle">
+          <svg class="cute-cloud-logo placeholder-icon animate-pulse" aria-hidden="true"><use href="#logo-cute-cloud"/></svg>
+        </div>
+        <h3>Select an email to view AI insights</h3>
+        <p>Assy will automatically summarize contents, extract action items, and prepare quick smart drafts.</p>
+      </div>
+
+      <!-- Skeletal loading shimmer -->
+      <div id="detail-loading" class="detail-placeholder hidden">
+        <div class="skeleton-shimmer">
+          <div class="skeleton-header"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-line" style="width: 60%"></div>
+        </div>
+      </div>
+
+      <!-- Email detail view (hidden by default) -->
+      <div id="detail-content" class="detail-content hidden">
+        
+        <!-- Header row -->
+        <div class="detail-header">
+          <div class="email-title-meta">
+            <h2 id="detail-subject">Email Subject Title</h2>
+            <div class="sender-info">
+              <span class="sender-avatar" id="detail-sender-avatar">U</span>
+              <div class="sender-details">
+                <span id="detail-from" class="from-name">Sender Name &lt;email@example.com&gt;</span>
+                <span id="detail-to" class="to-name">to me</span>
+              </div>
+              <span id="detail-date" class="email-date">July 4, 2026, 1:30 PM</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Panel (Glassmorphic dashboard card) -->
+        <div class="ai-dashboard-card glass-card">
+          <div class="ai-card-header">
+            <div class="ai-badge">
+              <i data-lucide="sparkles"></i>
+              <span>Gemini AI Insights</span>
+            </div>
+            <button id="btn-reanalyze" class="btn btn-tiny" title="Re-analyze with Gemini">
+              <i data-lucide="rotate-cw"></i>
+              <span>Re-analyze</span>
+            </button>
+          </div>
+          
+          <div class="ai-card-body">
+            <div class="ai-insight-section">
+              <h6>Summary</h6>
+              <p id="ai-summary">Retrieving AI summary...</p>
+            </div>
+
+            <div class="ai-insight-row">
+              <div class="ai-insight-section category-section">
+                <h6>AI Category</h6>
+                <div class="category-pill-wrapper">
+                  <span id="ai-category-badge" class="cat-pill">Primary</span>
+                  <span id="ai-category-reason" class="cat-reason">Analysis details...</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="ai-insight-section">
+              <h6>Action Items</h6>
+              <ul id="ai-actions-list" class="action-items-list">
+                <!-- Action items populated dynamically -->
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Email Body Content -->
+        <div class="email-body-container">
+          <div id="email-body-iframe-wrapper">
+            <!-- Iframe used to safely render email HTML without bleeding styles -->
+            <iframe id="email-body-iframe" sandbox="allow-same-origin"></iframe>
+          </div>
+          <div id="email-body-text" class="hidden">
+            <!-- Fallback text body container -->
+          </div>
+        </div>
+
+        <!-- AI Smart Reply & Drafting Section -->
+        <div class="ai-draft-section glass-card">
+          <div class="draft-header">
+            <h4><i data-lucide="pen-tool"></i> Gemini Smart Reply</h4>
+            <span class="draft-status" id="draft-status-indicator"></span>
+          </div>
+
+          <div class="draft-controls">
+            <div class="tone-selector">
+              <label>Tone:</label>
+              <div class="tone-buttons">
+                <button class="btn-tone active" data-tone="Professional">Professional</button>
+                <button class="btn-tone" data-tone="Friendly">Friendly</button>
+                <button class="btn-tone" data-tone="Short/Direct">Direct</button>
+                <button class="btn-tone" data-tone="Apologetic">Apologetic</button>
+              </div>
+            </div>
+
+            <div class="form-group custom-inst">
+              <label for="draft-instructions">Additional Context / Reply Instructions:</label>
+              <input type="text" id="draft-instructions" placeholder="e.g. 'Politely decline', 'Accept invitation for Tuesday at 2pm', 'Ask for clarification'">
+            </div>
+
+            <button id="btn-generate-draft" class="btn btn-primary">
+              <i data-lucide="sparkles"></i>
+              <span>Generate Draft Reply</span>
+            </button>
+          </div>
+
+          <!-- Draft output edit and send box -->
+          <div id="draft-editor-container" class="draft-editor-container hidden">
+            <textarea id="draft-textarea" rows="8" placeholder="Draft will appear here..."></textarea>
+            <div class="editor-actions">
+              <span class="editor-note"><i data-lucide="info"></i> You can edit this reply directly before sending.</span>
+              <button id="btn-send-reply" class="btn btn-success">
+                <i data-lucide="send"></i>
+                <span>Send Reply</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Floating Action Button for Assy Assistant -->
+  <button id="btn-assy-fab" class="btn-fab" title="Command Assy">
+    <div class="fab-pulse"></div>
+    <svg class="cute-cloud-logo fab-cloud-icon" aria-hidden="true"><use href="#logo-cute-cloud"/></svg>
+    <span>Ask Assy</span>
+  </button>
+
+  <!-- Assy Assistant Overlay Modal -->
+  <div id="assy-modal" class="modal-overlay hidden">
+    <div class="modal-card glass-card">
+      <div class="modal-header">
+        <div class="brand">
+          <svg class="cute-cloud-logo brand-icon" aria-hidden="true"><use href="#logo-cute-cloud"/></svg>
+          <span>Assy Copilot</span>
+        </div>
+        <button id="btn-close-assy" class="btn-icon" title="Close"><i data-lucide="x"></i></button>
+      </div>
+
+      <div class="modal-body">
+        
+        <!-- Voice/Interactive Visualization -->
+        <div class="voice-status-container">
+          <div id="voice-waves" class="voice-waves">
+            <span class="stroke"></span>
+            <span class="stroke"></span>
+            <span class="stroke"></span>
+            <span class="stroke"></span>
+            <span class="stroke"></span>
+          </div>
+          <p id="assy-status-text">Click the microphone to speak, or type your command below.</p>
+        </div>
+
+        <!-- Assistant Conversation Bubbles -->
+        <div id="assy-dialog-box" class="assy-dialog-box hidden">
+          <div class="bubble assistant">
+            <div class="bubble-avatar-wrapper">
+              <svg class="cute-cloud-logo bubble-avatar" aria-hidden="true"><use href="#logo-cute-cloud"/></svg>
+            </div>
+            <div class="bubble-content" id="assy-speech-bubble">Hello! I'm Assy. What email action can I perform for you today?</div>
+          </div>
+        </div>
+
+        <!-- Compose Draft Card (Rendered dynamically if intent is send_email) -->
+        <div id="compose-draft-card" class="compose-draft-card glass-card hidden">
+          <h5><i data-lucide="mail-plus"></i> Review New Email</h5>
+          <div class="form-group">
+            <label for="compose-to">To:</label>
+            <input type="email" id="compose-to" placeholder="recipient@example.com">
+          </div>
+          <div class="form-group">
+            <label for="compose-subject">Subject:</label>
+            <input type="text" id="compose-subject" placeholder="Enter subject line">
+          </div>
+          <div class="form-group">
+            <label for="compose-body">Message:</label>
+            <textarea id="compose-body" rows="6" placeholder="Message content..."></textarea>
+          </div>
+          <div class="compose-actions">
+            <button id="btn-cancel-compose" class="btn btn-secondary">Cancel</button>
+            <button id="btn-send-compose" class="btn btn-success">
+              <i data-lucide="send"></i>
+              <span>Send Email</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Form Command Input Group -->
+        <div class="command-input-wrapper">
+          <button id="btn-assy-mic" class="btn-mic-input" title="Voice Input"><i data-lucide="mic"></i></button>
+          <input type="text" id="assy-command-input" placeholder="e.g. 'Email test@example.com telling them I will be there at 5'">
+          <button id="btn-assy-send" class="btn-send-input" title="Submit Command"><i data-lucide="arrow-right"></i></button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

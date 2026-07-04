@@ -1,0 +1,33 @@
+{
+  "19f2c349b38cd3e4": {
+    "summary": "This email confirms that 2-Step Verification has been successfully turned on for the recipient's Google Account, enhancing its security.",
+    "category": "Updates",
+    "categoryReason": "This is an automated notification about a significant security setting change to the user's account.",
+    "actionItems": [
+      "Consider adding a backup phone or getting backup codes to prevent getting locked out.",
+      "Review 2-Step Verification settings to make any desired changes.",
+      "Check security activity at the provided Google Account link."
+    ]
+  },
+  "18a5ecae483fd18b": {
+    "summary": "This email provides new students with their official CMRIT college email ID, initial password, and instructions for first-time login and changing their password.",
+    "category": "Primary",
+    "categoryReason": "It is a direct and important communication from the college to students regarding essential login details for their official email.",
+    "actionItems": [
+      "Login to the college/official email using the provided username and password.",
+      "Change the password after the first login.",
+      "Note down your new password."
+    ]
+  },
+  "19a253b2e987a303": {
+    "summary": "This email congratulates Varsshini Saravanan on earning an Oracle Certification credential and provides instructions on how to share the accomplishment, download the digital badge, and access the eCertificate.",
+    "category": "Updates",
+    "categoryReason": "The email serves as an automatic confirmation and notification of a successfully obtained credential.",
+    "actionItems": [
+      "Share your accomplishment on LinkedIn, Facebook, and Twitter",
+      "Download your digital badge in JPG format",
+      "Download your eCertificate in PDF format",
+      "Log into Oracle CertView to view detailed exam results and provide official email verification"
+    ]
+  }
+}
