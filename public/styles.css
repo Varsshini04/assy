@@ -465,6 +465,7 @@ body {
 #dashboard-screen {
   display: grid;
   grid-template-columns: var(--sidebar-width) var(--list-width) 1fr;
+  grid-template-rows: minmax(0, 1fr);
   width: 100vw;
   height: 100vh;
 }
@@ -715,6 +716,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
 }
 
 .list-header {
@@ -747,6 +749,7 @@ body {
 /* Email list scrolling body */
 .email-list {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 
