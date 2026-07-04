@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ✨ Assy - Gmail Intelligent Assistant
 
 Assy is a premium, AI-powered Gmail client built with HTML, Vanilla CSS, and JavaScript, backed by a Node.js Express server. It integrates the **Gmail API** with **Google Gemini 2.5 Flash** to provide high-quality summarizations, automatic categorizations, contextual draft generation, and semantic email search.
@@ -84,3 +85,7 @@ To link the Gmail API, you need Google OAuth 2.0 Client credentials:
 - [public/styles.css](file:///C:/Users/Varsshini/dev/ai-gmail-assistant/public/styles.css) - Styling sheet with dark mode color tokens, glassmorphism design, and loading screens.
 - [public/app.js](file:///C:/Users/Varsshini/dev/ai-gmail-assistant/public/app.js) - Application controller linking the user interface to APIs.
 - [.env](file:///C:/Users/Varsshini/dev/ai-gmail-assistant/.env) - Local system credentials storage.
+=======
+# assy
+an email assistant 
+>>>>>>> 0fbcef76b31eaf13ab36b335a60e0341172c5b61

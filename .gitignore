@@ -1,0 +1,6 @@
+node_modules/
+.env
+.env.*
+analysis-cache.json
+dist/
+build/
