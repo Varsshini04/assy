@@ -1122,6 +1122,11 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
+.ai-badge-cloud {
+  width: 24px;
+  height: 18px;
+}
+
 .ai-badge i {
   color: var(--color-primary);
   width: 16px;

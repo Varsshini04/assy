@@ -293,7 +293,7 @@ function setSearchMode(mode) {
   } else {
     el.searchModeGmail.classList.remove('active');
     el.searchModeAi.classList.add('active');
-    el.searchInput.placeholder = 'Search with Gemini (natural language)...';
+    el.searchInput.placeholder = 'Search with Assy (natural language)...';
   }
 }
 
@@ -336,7 +336,7 @@ async function handleSearch() {
         el.activeQueryTag.classList.remove('hidden');
         el.activeQueryTag.querySelector('span').textContent = `AI Translated: ${data.translatedQuery}`;
       } else {
-        alert('Gemini could not translate the search query.');
+        alert('Assy could not translate the search query.');
       }
     } catch (err) {
       console.error(err);
@@ -906,7 +906,7 @@ function renderEmailDetails(email) {
 // Render dynamic AI cards
 function renderAIInsights(analysis) {
   if (!analysis) {
-    el.aiSummary.innerHTML = '<em>Gemini credentials not found or analysis failed. Re-run manually.</em>';
+    el.aiSummary.innerHTML = '<em>Assy could not analyze this email. Re-run manually.</em>';
     el.aiCategoryBadge.className = 'cat-pill';
     el.aiCategoryBadge.textContent = '';
     el.aiCategoryReason.textContent = '';
@@ -980,7 +980,7 @@ async function handleGenerateDraft() {
   const btnHtml = el.btnGenerateDraft.innerHTML;
   el.btnGenerateDraft.disabled = true;
   el.btnGenerateDraft.innerHTML = '<div class="spinner" style="width: 14px; height: 14px; border-width: 2px;"></div> &nbsp; Drafting Reply...';
-  el.draftStatusIndicator.textContent = 'Gemini is drafting a response...';
+  el.draftStatusIndicator.textContent = 'Assy is drafting a response...';
   el.draftStatusIndicator.style.color = 'var(--text-secondary)';
 
   try {
