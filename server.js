@@ -25,9 +25,22 @@ const TOKEN_PATH = path.join(__dirname, 'token.json');
 // Path to store AI analysis cache
 const CACHE_PATH = path.join(__dirname, 'analysis-cache.json');
 // Path to dynamic env file for user settings
+// Path to store user-defined custom categories
+const CATEGORIES_PATH = path.join(__dirname, 'categories.json');
+// Path to store NLP custom-category classification cache (per email)
+const CUSTOM_CACHE_PATH = path.join(__dirname, 'custom-cache.json');
 const ENV_PATH = path.join(__dirname, '.env');
 
 // Helper to read JSON files safely
+// Build a stable signature for a set of custom categories so cached
+// classifications are invalidated when the categories change.
+function categorySignature(categories) {
+  return (categories || [])
+    .map(c => `${c.name}:${c.description || ''}`)
+    .sort()
+    .join('|');
+}
+ 
 function readJsonFile(filePath, defaultVal = {}) {
   try {
     if (fs.existsSync(filePath)) {
@@ -305,6 +318,11 @@ app.get('/api/emails', async (req, res) => {
     const gmail = await getGmailClient();
     const query = req.query.q || '';
     const pageToken = req.query.pageToken || undefined;
+<<<<<<< HEAD
+=======
+    const customCache = readJsonFile(CUSTOM_CACHE_PATH);
+    const sig = categorySignature(readJsonFile(CATEGORIES_PATH, []));
+>>>>>>> Improve UI and fix Gemini integration
     
     // Fetch list of message headers
     const listRes = await gmail.users.messages.list({
@@ -325,6 +343,8 @@ app.get('/api/emails', async (req, res) => {
       
       const headers = detailRes.data.payload.headers;
       const cachedAnalysis = readJsonFile(CACHE_PATH)[msg.id];
+      const cachedCustom = customCache[msg.id];
+
       
       return {
         id: msg.id,
@@ -336,8 +356,8 @@ app.get('/api/emails', async (req, res) => {
         snippet: detailRes.data.snippet,
         labelIds: detailRes.data.labelIds,
         isRead: !detailRes.data.labelIds.includes('UNREAD'),
-        aiAnalysis: cachedAnalysis || null
-      };
+        aiAnalysis: cachedAnalysis || null,
+        customCategory: (cachedCustom && cachedCustom.sig === sig) ? cachedCustom.category : null      };
     });
 
     const emails = await Promise.all(emailPromises);
@@ -461,8 +481,146 @@ app.post('/api/emails/:id/analyze', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-// Call Gemini API to analyze email (summarize, categorize, extract actions)
+// ------------------------------------------------------------------
+// Custom (user-defined) categories with NLP-based email segregation
+// ------------------------------------------------------------------
+ 
+// List user-defined custom categories
+app.get('/api/categories', (req, res) => {
+  res.json({ categories: readJsonFile(CATEGORIES_PATH, []) });
+});
+ 
+// Create a new custom category
+app.post('/api/categories', (req, res) => {
+  const name = (req.body.name || '').trim();
+  const description = (req.body.description || '').trim();
+  if (!name) {
+    return res.status(400).json({ error: 'Category name is required.' });
+  }
+ 
+  const categories = readJsonFile(CATEGORIES_PATH, []);
+  if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+    return res.status(409).json({ error: 'A category with that name already exists.' });
+  }
+ 
+  categories.push({ name, description });
+  writeJsonFile(CATEGORIES_PATH, categories);
+  res.json({ categories });
+});
+ 
+// Delete a custom category by name
+app.delete('/api/categories/:name', (req, res) => {
+  const target = req.params.name.toLowerCase();
+  const categories = readJsonFile(CATEGORIES_PATH, []).filter(
+    c => c.name.toLowerCase() !== target
+  );
+  writeJsonFile(CATEGORIES_PATH, categories);
+  res.json({ categories });
+});
+ 
+// Classify a batch of emails into the user's custom categories via NLP.
+// Body: { emails: [{ id, subject, from, snippet }] }
+// Returns: { assignments: { [id]: categoryName | null } }
+app.post('/api/categorize', async (req, res) => {
+  try {
+    const emails = Array.isArray(req.body.emails) ? req.body.emails : [];
+    const categories = readJsonFile(CATEGORIES_PATH, []);
+    const sig = categorySignature(categories);
+    const customCache = readJsonFile(CUSTOM_CACHE_PATH);
+ 
+    // No custom categories: nothing to classify.
+    if (categories.length === 0 || emails.length === 0) {
+      return res.json({ assignments: {} });
+    }
+ 
+    // Only classify emails whose cached classification is missing or stale.
+    const toClassify = emails.filter(
+      e => !customCache[e.id] || customCache[e.id].sig !== sig
+    );
+ 
+    if (toClassify.length > 0) {
+      if (!process.env.GEMINI_API_KEY) {
+        return res.status(400).json({ error: 'Gemini API key is not configured.' });
+      }
+      const results = await runCustomCategorization(toClassify, categories);
+      for (const { id, category } of results) {
+        customCache[id] = { category, sig };
+      }
+      writeJsonFile(CUSTOM_CACHE_PATH, customCache);
+    }
+ 
+    const assignments = {};
+    for (const e of emails) {
+      const entry = customCache[e.id];
+      assignments[e.id] = entry && entry.sig === sig ? entry.category : null;
+    }
+    res.json({ assignments });
+  } catch (err) {
+    console.error('Error classifying emails into custom categories:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+ 
+// Call Gemini to assign each email to the single best-matching custom category
+// (or null when none clearly applies). Runs as one batched request.
+async function runCustomCategorization(emails, categories) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('Gemini API key is not configured.');
+  }
+ 
+  const ai = new GoogleGenAI({ apiKey });
+  const model = 'gemini-2.5-flash';
+ 
+  const categoryList = categories
+    .map(c => `- "${c.name}": ${c.description || 'No description provided.'}`)
+    .join('\n');
+ 
+  const systemInstructions = `
+You are an expert email classifier. The user has defined the following custom categories:
+${categoryList}
+ 
+For each email, decide which SINGLE category best fits based on its content and the category descriptions. If no category clearly applies, use null. Be strict: only assign a category when the email is genuinely relevant to it.
+ 
+Return ONLY a valid JSON array where each item matches this schema:
+{ "id": "string", "category": "string or null" }
+The "category" value MUST exactly match one of the provided category names, or be null.
+  `;
+ 
+  const emailPayload = JSON.stringify(
+    emails.map(e => ({
+      id: e.id,
+      subject: (e.subject || '').substring(0, 200),
+      from: (e.from || '').substring(0, 200),
+      snippet: (e.snippet || '').substring(0, 300)
+    }))
+  );
+ 
+  const response = await ai.models.generateContent({
+    model,
+    contents: `Classify these emails:\n${emailPayload}`,
+    config: {
+      systemInstruction: systemInstructions,
+      responseMimeType: 'application/json'
+    }
+  });
+ 
+  const responseText = response.text || '';
+  let parsed;
+  try {
+    parsed = JSON.parse(responseText);
+  } catch (jsonErr) {
+    const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+    parsed = JSON.parse(cleanJson);
+  }
+ 
+  const validNames = new Set(categories.map(c => c.name));
+  return (Array.isArray(parsed) ? parsed : []).map(item => ({
+    id: item.id,
+    category: validNames.has(item.category) ? item.category : null
+  }));
+}
+ 
 async function runAIAnalysis(subject, from, date, textBody) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {

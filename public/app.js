@@ -9,12 +9,24 @@ const state = {
   activeCategory: 'ALL',
   emails: [],
   selectedEmail: null,
+<<<<<<< HEAD
   selectedTone: 'Professional',
   nextPageToken: null,
   loadingMore: false
+=======
+  activeCategory: 'ALL',
+  emails: [],
+  selectedEmail: null,
+  selectedTone: 'Professional',
+  nextPageToken: null,
+  loadingMore: false,
+  customCategories: [],
+  categorizing: false
+>>>>>>> Improve UI and fix Gemini integration
 };
-
+ 
 // UI Elements
+
 const el = {
   setupScreen: document.getElementById('setup-screen'),
   loginScreen: document.getElementById('login-screen'),
@@ -86,7 +98,18 @@ const el = {
   composeSubject: document.getElementById('compose-subject'),
   composeBody: document.getElementById('compose-body'),
   btnCancelCompose: document.getElementById('btn-cancel-compose'),
-  btnSendCompose: document.getElementById('btn-send-compose')
+  btnSendCompose: document.getElementById('btn-send-compose'),
+ 
+  // Custom category elements
+  customCategoryList: document.getElementById('custom-category-list'),
+  btnAddCategory: document.getElementById('btn-add-category'),
+  categoryModal: document.getElementById('category-modal'),
+  btnCloseCategory: document.getElementById('btn-close-category'),
+  btnCancelCategory: document.getElementById('btn-cancel-category'),
+  btnSaveCategory: document.getElementById('btn-save-category'),
+  categoryName: document.getElementById('category-name'),
+  categoryDesc: document.getElementById('category-desc'),
+  categoryError: document.getElementById('category-error')
 };
 
 // Initialize Application
@@ -115,6 +138,7 @@ async function initApp() {
       showScreen('login');
     } else {
       showScreen('dashboard');
+      loadCustomCategories();
       loadEmails();
     }
   } catch (err) {
@@ -151,9 +175,14 @@ function setupEventListeners() {
   // Email List controls
   el.btnRefresh.addEventListener('click', () => loadEmails(true));
   el.btnResetList.addEventListener('click', resetSearch);
+<<<<<<< HEAD
 
   // Infinite scroll: load older emails as the user scrolls down
   el.emailListContainer.addEventListener('scroll', handleListScroll);
+=======
+  el.emailListContainer.addEventListener('scroll', handleListScroll);
+
+>>>>>>> Improve UI and fix Gemini integration
   
   // Search Bar
   el.btnSearch.addEventListener('click', handleSearch);
@@ -198,6 +227,13 @@ function setupEventListeners() {
   el.btnAssyMic.addEventListener('click', toggleSpeechRecognition);
   el.btnCancelCompose.addEventListener('click', closeAssyModal);
   el.btnSendCompose.addEventListener('click', handleComposeSubmit);
+  el.btnAddCategory.addEventListener('click', openCategoryModal);
+  el.btnCloseCategory.addEventListener('click', closeCategoryModal);
+  el.btnCancelCategory.addEventListener('click', closeCategoryModal);
+  el.btnSaveCategory.addEventListener('click', handleSaveCategory);
+  el.categoryName.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleSaveCategory();
+  });
 }
 
 // Config Saving Action
@@ -270,14 +306,14 @@ function setSearchMode(mode) {
   } else {
     el.searchModeGmail.classList.remove('active');
     el.searchModeAi.classList.add('active');
-    el.searchInput.placeholder = 'Search with Gemini (natural language)...';
-  }
+    el.searchInput.placeholder = 'Search with Assy (natural language)...';
+    }
 }
 
 // Set Active Category Filter
 function setCategoryFilter(cat) {
   state.activeCategory = cat;
-  el.navItems.forEach(item => {
+  document.querySelectorAll('.nav-item').forEach(item => {
     if (item.getAttribute('data-category') === cat) {
       item.classList.add('active');
     } else {
@@ -313,7 +349,7 @@ async function handleSearch() {
         el.activeQueryTag.classList.remove('hidden');
         el.activeQueryTag.querySelector('span').textContent = `AI Translated: ${data.translatedQuery}`;
       } else {
-        alert('Gemini could not translate the search query.');
+        alert('Assy could not translate the search query.');
       }
     } catch (err) {
       console.error(err);
@@ -366,6 +402,7 @@ async function loadEmails(isSilent = false) {
       state.nextPageToken = data.nextPageToken || null;
       renderEmailList();
       updateCategoryCounts();
+      categorizeLoadedEmails();
     } else if (data.error) {
       console.error(data.error);
       el.emailListContainer.innerHTML = `<div class="list-placeholder"><p class="text-rose">Error: ${data.error}</p></div>`;
@@ -375,35 +412,57 @@ async function loadEmails(isSilent = false) {
     el.emailListContainer.innerHTML = `<div class="list-placeholder"><p class="text-rose">Network error occurred.</p></div>`;
   }
 }
+<<<<<<< HEAD
 
 // Trigger loading older emails when scrolled near the bottom of the list
+=======
+>>>>>>> Improve UI and fix Gemini integration
 function handleListScroll() {
   const c = el.emailListContainer;
   if (c.scrollTop + c.clientHeight >= c.scrollHeight - 120) {
     loadMoreEmails();
   }
 }
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> Improve UI and fix Gemini integration
 // Fetch the next page of (older) emails and append them to the list
 async function loadMoreEmails() {
   if (state.loadingMore || !state.nextPageToken) return;
   state.loadingMore = true;
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> Improve UI and fix Gemini integration
   // Show a loading indicator at the bottom of the list
   const loader = document.createElement('div');
   loader.className = 'list-load-more';
   loader.innerHTML = '<div class="spinner"></div><span>Loading older emails...</span>';
   el.emailListContainer.appendChild(loader);
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> Improve UI and fix Gemini integration
   try {
     let url = `/api/emails?pageToken=${encodeURIComponent(state.nextPageToken)}`;
     if (state.activeQuery) {
       url += `&q=${encodeURIComponent(state.activeQuery)}`;
     }
+<<<<<<< HEAD
 
     const res = await fetch(url);
     const data = await res.json();
 
+=======
+ 
+    const res = await fetch(url);
+    const data = await res.json();
+ 
+>>>>>>> Improve UI and fix Gemini integration
     if (data.emails) {
       state.emails = state.emails.concat(data.emails);
       state.nextPageToken = data.nextPageToken || null;
@@ -420,14 +479,22 @@ async function loadMoreEmails() {
     state.loadingMore = false;
   }
 }
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> Improve UI and fix Gemini integration
 // Render dynamic emails
 function renderEmailList() {
   el.emailListContainer.innerHTML = '';
   
   // Filter list by Category if not in ALL mode
   let filtered = state.emails;
-  if (state.activeCategory !== 'ALL') {
+  const isCustom = state.customCategories.some(c => c.name === state.activeCategory);
+  if (isCustom) {
+    filtered = state.emails.filter(email => email.customCategory === state.activeCategory);
+  } else if (state.activeCategory !== 'ALL') {
+
     filtered = state.emails.filter(email => {
       const aiCat = email.aiAnalysis ? email.aiAnalysis.category : null;
       
@@ -484,7 +551,9 @@ function renderEmailList() {
     if (aiCat) {
       catTagHtml = `<span class="cat-tag cat-tag-${aiCat.toLowerCase()}">${aiCat}</span>`;
     }
-
+    if (email.customCategory) {
+      catTagHtml += `<span class="cat-tag cat-tag-custom">${escapeHtml(email.customCategory)}</span>`;
+    }
     // Unread and Sparkle Indicator
     const indicatorsHtml = `
       <div style="display: flex; align-items: center; gap: 8px;">
@@ -503,9 +572,10 @@ function renderEmailList() {
         ${indicatorsHtml}
       </div>
       <div class="email-snippet">${email.snippet}</div>
-      <div style="margin-top: 8px; display: flex; justify-content: space-between; align-items: center;">
-        ${catTagHtml}
+      <div style="margin-top: 8px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+              ${catTagHtml}
       </div>
+
     `;
 
     item.addEventListener('click', () => selectEmail(email.id));
@@ -547,9 +617,192 @@ function updateCategoryCounts() {
   el.countPromotions.textContent = counts.Promotions;
   el.countSocial.textContent = counts.Social;
   el.countForums.textContent = counts.Forums;
+  updateCustomCategoryCounts();
 }
 
-// Load Email Detail Pane content
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+ 
+// Fetch the user's custom categories and render them in the sidebar
+async function loadCustomCategories() {
+  try {
+    const res = await fetch('/api/categories');
+    const data = await res.json();
+    state.customCategories = data.categories || [];
+    renderCustomCategoryNav();
+  } catch (err) {
+    console.error('Failed to load custom categories:', err);
+  }
+}
+ 
+// Render the custom category nav items with counts and delete buttons
+function renderCustomCategoryNav() {
+  el.customCategoryList.innerHTML = '';
+ 
+  state.customCategories.forEach(cat => {
+    const count = state.emails.filter(e => e.customCategory === cat.name).length;
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <button class="nav-item ${state.activeCategory === cat.name ? 'active' : ''}" data-category="${escapeHtml(cat.name)}">
+        <i data-lucide="folder"></i>
+        <span>${escapeHtml(cat.name)}</span>
+        <span class="badge badge-custom" data-count-for="${escapeHtml(cat.name)}">${count}</span>
+        <span class="nav-item-delete" title="Delete category"><i data-lucide="x"></i></span>
+      </button>
+    `;
+ 
+    const btn = li.querySelector('.nav-item');
+    btn.addEventListener('click', (e) => {
+      if (e.target.closest('.nav-item-delete')) {
+        e.stopPropagation();
+        handleDeleteCategory(cat.name);
+        return;
+      }
+      setCategoryFilter(cat.name);
+    });
+ 
+    el.customCategoryList.appendChild(li);
+  });
+ 
+  lucide.createIcons();
+}
+ 
+// Update just the count badges for custom categories
+function updateCustomCategoryCounts() {
+  state.customCategories.forEach(cat => {
+    const count = state.emails.filter(e => e.customCategory === cat.name).length;
+    const badge = el.customCategoryList.querySelector(`[data-count-for="${CSS.escape(cat.name)}"]`);
+    if (badge) badge.textContent = count;
+  });
+}
+ 
+// Ask the server to sort the currently loaded emails into custom categories
+async function categorizeLoadedEmails() {
+  if (state.categorizing || state.customCategories.length === 0 || state.emails.length === 0) return;
+ 
+  // Only send emails that don't yet have a custom classification
+  const pending = state.emails.filter(e => !e.customCategory);
+  if (pending.length === 0) return;
+ 
+  state.categorizing = true;
+  try {
+    const res = await fetch('/api/categorize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        emails: pending.map(e => ({
+          id: e.id,
+          subject: e.subject,
+          from: e.from,
+          snippet: e.snippet
+        }))
+      })
+    });
+    const data = await res.json();
+    if (data.assignments) {
+      state.emails.forEach(e => {
+        if (data.assignments.hasOwnProperty(e.id)) {
+          e.customCategory = data.assignments[e.id];
+        }
+      });
+      renderEmailList();
+      updateCategoryCounts();
+    }
+  } catch (err) {
+    console.error('Failed to categorize emails:', err);
+  } finally {
+    state.categorizing = false;
+  }
+}
+ 
+// Modal open/close
+function openCategoryModal() {
+  el.categoryName.value = '';
+  el.categoryDesc.value = '';
+  el.categoryError.classList.add('hidden');
+  el.categoryModal.classList.remove('hidden');
+  el.categoryName.focus();
+}
+ 
+function closeCategoryModal() {
+  el.categoryModal.classList.add('hidden');
+}
+ 
+// Create a new custom category, then re-sort the loaded emails into it
+async function handleSaveCategory() {
+  const name = el.categoryName.value.trim();
+  const description = el.categoryDesc.value.trim();
+  if (!name) {
+    showCategoryError('Please enter a category name.');
+    return;
+  }
+ 
+  el.btnSaveCategory.disabled = true;
+  const originalHtml = el.btnSaveCategory.innerHTML;
+  el.btnSaveCategory.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;"></div><span>Sorting...</span>';
+ 
+  try {
+    const res = await fetch('/api/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, description })
+    });
+    const data = await res.json();
+ 
+    if (!res.ok) {
+      showCategoryError(data.error || 'Failed to create category.');
+      return;
+    }
+ 
+    state.customCategories = data.categories || [];
+    renderCustomCategoryNav();
+    closeCategoryModal();
+ 
+    // Adding a category invalidates existing classifications; re-sort all loaded emails
+    state.emails.forEach(e => { e.customCategory = null; });
+    await categorizeLoadedEmails();
+    setCategoryFilter(name);
+  } catch (err) {
+    console.error(err);
+    showCategoryError('Network error creating category.');
+  } finally {
+    el.btnSaveCategory.disabled = false;
+    el.btnSaveCategory.innerHTML = originalHtml;
+    lucide.createIcons();
+  }
+}
+ 
+function showCategoryError(msg) {
+  el.categoryError.textContent = msg;
+  el.categoryError.classList.remove('hidden');
+}
+ 
+// Delete a custom category
+async function handleDeleteCategory(name) {
+  if (!confirm(`Delete the category "${name}"?`)) return;
+  try {
+    const res = await fetch(`/api/categories/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    const data = await res.json();
+    state.customCategories = data.categories || [];
+ 
+    // Clear the classification locally and reset the filter if it was active
+    state.emails.forEach(e => { if (e.customCategory === name) e.customCategory = null; });
+    if (state.activeCategory === name) {
+      setCategoryFilter('ALL');
+    }
+    renderCustomCategoryNav();
+    updateCategoryCounts();
+    renderEmailList();
+  } catch (err) {
+    console.error('Failed to delete category:', err);
+  }
+}
+ 
 async function selectEmail(emailId) {
   // Highlight active selected item in list
   document.querySelectorAll('.email-item').forEach(item => {
@@ -689,7 +942,7 @@ function renderAIInsights(analysis) {
     el.aiCategoryBadge.className = 'cat-pill';
     el.aiCategoryBadge.textContent = '';
     el.aiCategoryReason.textContent = '';
-    el.aiActionsList.innerHTML = '<li>Click Re-analyze to generate insights.</li>';
+    el.aiSummary.innerHTML = '<em>Assy could not analyze this email. Re-run manually.</em>';
     return;
   }
 
@@ -777,7 +1030,7 @@ async function handleGenerateDraft() {
     if (data.draftReply) {
       el.draftTextarea.value = data.draftReply;
       el.draftEditorContainer.classList.remove('hidden');
-      el.draftStatusIndicator.textContent = 'Draft created!';
+      el.draftStatusIndicator.textContent = 'Assy is drafting a response...';
       el.draftStatusIndicator.style.color = 'var(--color-success)';
       
       // Auto scroll down to review
