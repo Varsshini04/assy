@@ -1,12 +1,12 @@
-# Assy
+# Mailly
 
-Assy is an AI-powered Gmail assistant that makes email feel less like work. It connects directly to your Gmail account, summarizes conversations as they arrive, organizes your inbox, lets you search using plain English, and writes contextual replies in your preferred tone.
+Mailly is an AI-powered Gmail assistant that makes email feel less like work. It connects directly to your Gmail account, summarizes conversations as they arrive, organizes your inbox, lets you search using plain English, and writes contextual replies in your preferred tone.
 
 It started as a Gmail client with AI summaries. It's now closer to an intelligent inbox that understands what matters, helps you respond faster, and keeps your email workflow in one place.
 
-## what's in here
+## What's in here
 
-```
+```text
 public/         — frontend (HTML, CSS, Vanilla JavaScript)
 server.js       — Express server, Gmail API, OAuth, Gemini integration
 package.json    — dependencies and scripts
@@ -17,21 +17,21 @@ One frontend. One backend. Gmail handles email, Gemini handles reasoning.
 
 ---
 
-## running it
+## Running it
 
-### install
+### Install
 
 ```bash
 npm install
 ```
 
-### start the server
+### Start the server
 
 ```bash
 npm start
 ```
 
-for development
+For development:
 
 ```bash
 npm run dev
@@ -49,51 +49,88 @@ On first launch you'll be asked for:
 - Google Client ID
 - Google Client Secret
 
-Save the configuration, connect your Gmail account through OAuth, and Assy is ready to use.
+Save the configuration, connect your Gmail account through OAuth, and Mailly is ready to use.
 
 ---
 
-## what it actually does
+## Features
 
-**summarizes your inbox.** Every email is automatically condensed into a short summary so you can understand the message without opening it.
+### AI Inbox Summaries
 
-**understands your emails.** Assy classifies messages into categories like Primary, Promotions, Updates, Social, and Forums using Gemini, with results cached locally to reduce API usage.
+Every email is automatically condensed into a concise summary so you can understand the message without opening it.
 
-**searches like a person.** Instead of remembering Gmail search operators, type something like *"emails from John about internships last month"* and Assy translates it into a valid Gmail search query.
+### Smart Email Classification
 
-**writes replies for you.** Generate contextual responses in Professional, Friendly, Direct, Apologetic, or any custom tone. Edit the draft before sending.
+Mailly categorizes emails into Primary, Promotions, Updates, Social, and Forums using Google Gemini, with local caching to reduce API usage.
 
-**sends emails safely.** AI-generated drafts stay editable. Nothing is sent until you review and confirm.
+### Natural Language Search
 
-**renders HTML securely.** Emails are displayed inside a sandboxed iframe so external styles and scripts can't interfere with the application.
+Search your inbox using plain English.
 
-**stays connected to Gmail.** Uses Google's official OAuth flow and Gmail API, so everything stays synced with your account.
+Examples:
+
+- "emails from John about internships"
+- "Amazon orders from last month"
+- "unread emails from my professor"
+
+Mailly translates your request into a valid Gmail search query automatically.
+
+### AI Reply Generation
+
+Generate contextual email drafts in multiple writing styles:
+
+- Professional
+- Friendly
+- Direct
+- Apologetic
+- Custom tone
+
+Every draft is editable before sending.
+
+### Safe Email Sending
+
+AI never sends emails automatically.
+
+You always review and approve drafts before they are sent.
+
+### Secure Email Rendering
+
+Emails are displayed inside a sandboxed iframe for improved security and isolation.
+
+### Gmail Integration
+
+Uses Google's official OAuth 2.0 flow and Gmail API, keeping everything synchronized with your Gmail account.
 
 ---
 
-## the interface
+## Interface
 
-**sidebar** — inbox navigation and Gmail folders
-
-**email list** — conversations with AI summaries and categories
-
-**reader** — full email rendered securely
-
-**search bar** — natural language search powered by Gemini
-
-**compose panel** — AI-generated drafts with selectable writing tones
+- **Sidebar** — Gmail folders and navigation
+- **Email List** — conversations with AI summaries
+- **Reader** — secure HTML email viewer
+- **Search Bar** — natural language search
+- **Compose Panel** — AI-powered reply generation
 
 ---
 
-## under the hood
+## Architecture
 
-The frontend is written entirely with HTML, CSS, and Vanilla JavaScript—no frontend frameworks. It communicates with an Express backend through REST APIs.
+The frontend is built entirely using HTML, CSS, and Vanilla JavaScript without any frontend frameworks.
 
-The backend manages Google OAuth authentication, Gmail API requests, AI processing with Google Gemini, email categorization, semantic search generation, and reply drafting. Configuration is stored locally in a `.env` file after the initial setup.
+The Express backend manages:
+
+- Google OAuth authentication
+- Gmail API communication
+- Gemini API integration
+- AI categorization
+- Natural language search
+- AI reply generation
+
+Configuration is stored locally in a `.env` file after the initial setup.
 
 ---
 
-## tech stack
+## Tech Stack
 
 - HTML5
 - CSS3
@@ -106,6 +143,6 @@ The backend manages Google OAuth authentication, Gmail API requests, AI processi
 
 ---
 
-## the look
+## Design
 
-Dark-first interface inspired by modern email clients. Glassmorphism panels, smooth transitions, concise AI summaries, and a clean reading experience focused on reducing inbox overload rather than adding more clutter.
+Mailly features a dark-first interface inspired by modern email clients, combining glassmorphism panels, smooth transitions, AI-generated summaries, and a distraction-free reading experience focused on reducing inbox overload.
